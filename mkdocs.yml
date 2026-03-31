@@ -44,3 +44,7 @@ nav:
   - 首頁: index.md
   - 📚 Java 開發:
     - Null 處理的最佳實踐: java-null-handling.md
+  - 📐 DDD 實踐與概念解析:
+    - 總覽與目錄: ddd-series/README.md
+    - 架構與分層:
+      - 從時序圖解析 Domain Model 的互動邊界與職責: ddd-series/02-architecture/01-domain-interaction-boundaries.md
