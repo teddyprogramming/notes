@@ -1,0 +1,1190 @@
+
+<!doctype html>
+<html lang="zh-Hant" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="Teddy">
+      
+      
+      
+      
+        <link rel="next" href="../ddd-series/02-architecture/01-domain-interaction-boundaries/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Null 處理的最佳實踐 - 技術筆記 (Tech Notes)</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#java-null-java" class="md-skip">
+          跳轉至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="頁首">
+    <a href=".." title="技術筆記 (Tech Notes)" class="md-header__button md-logo" aria-label="技術筆記 (Tech Notes)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            技術筆記 (Tech Notes)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Null 處理的最佳實踐
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="切換至深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切換至深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="切換至淺色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切換至淺色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜尋" placeholder="搜尋" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="搜尋">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空" aria-label="清空" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜尋引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="標籤頁" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  📚 Java 開發
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ddd-series/02-architecture/01-domain-interaction-boundaries/" class="md-tabs__link">
+          
+  
+  
+  📐 DDD 筆記
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="導航" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="技術筆記 (Tech Notes)" class="md-nav__button md-logo" aria-label="技術筆記 (Tech Notes)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    技術筆記 (Tech Notes)
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 Java 開發
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    📚 Java 開發
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Null 處理的最佳實踐
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Null 處理的最佳實踐
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目錄">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目錄
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 前言 (Introduction)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 前言 (Introduction)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        「十億美元的錯誤」
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nullpointerexception-npe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        什麼是 NullPointerException (NPE)？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 傳統的 Null 檢查方式
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 傳統的 Null 檢查方式">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        防禦性設計與過度檢查的問題
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-java-8optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Java 8：Optional 類別
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Java 8：Optional 類別">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        建立 Optional 物件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        轉換與串接
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚠️ 應避免的常見反模式：將 Optional 用作實體變數型別或方法參數
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-nullability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 利用工具防範：Nullability 註解
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 架構與設計模式：避免傳回 Null
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 架構與設計模式：避免傳回 Null">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        傳回空集合取代 Null
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#null-object-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Null Object Pattern（空物件模式）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fail-fast" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心領域的 Fail-Fast 原則
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-java-nullpointerexception-java-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 現代 Java：更友善的 NullPointerException (Java 14+)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 結論與最佳實踐準則
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📐 DDD 筆記
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    📐 DDD 筆記
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ddd-series/02-architecture/01-domain-interaction-boundaries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    從時序圖解析 Domain Model 的互動邊界與職責
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ddd-series/03-tactical-design/01-associations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    關聯 (Associations) 與模型導航
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目錄">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目錄
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 前言 (Introduction)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 前言 (Introduction)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        「十億美元的錯誤」
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nullpointerexception-npe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        什麼是 NullPointerException (NPE)？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 傳統的 Null 檢查方式
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 傳統的 Null 檢查方式">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        防禦性設計與過度檢查的問題
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-java-8optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Java 8：Optional 類別
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Java 8：Optional 類別">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        建立 Optional 物件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        轉換與串接
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optional_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚠️ 應避免的常見反模式：將 Optional 用作實體變數型別或方法參數
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-nullability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 利用工具防範：Nullability 註解
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 架構與設計模式：避免傳回 Null
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 架構與設計模式：避免傳回 Null">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#null" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        傳回空集合取代 Null
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#null-object-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Null Object Pattern（空物件模式）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fail-fast" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心領域的 Fail-Fast 原則
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-java-nullpointerexception-java-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 現代 Java：更友善的 NullPointerException (Java 14+)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 結論與最佳實踐準則
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="java-null-java">探討 Java 中的 Null 處理與實踐：從傳統檢查到現代 Java 的演進</h1>
+<h2 id="1-introduction">1. 前言 (Introduction)</h2>
+<h3 id="_1">「十億美元的錯誤」</h3>
+<p>「<code>null</code> reference」這個概念由圖靈獎得主 Tony Hoare 於 1965 年在設計 ALGOL W 語言時首次引入，後來他將此設計稱為自己的「十億美元的錯誤」(The Billion Dollar Mistake)。因為這個設計在系統開發中衍生了無數的錯誤、漏洞與系統當機。</p>
+<h3 id="nullpointerexception-npe">什麼是 NullPointerException (NPE)？</h3>
+<p>在 Java 開發中，最惡名昭彰的例外狀況非 <code>NullPointerException</code> 莫屬。當我們試圖在一個值為 <code>null</code> 的物件 reference 上呼叫方法、存取屬性或計算長度時，JVM 就會拋出這個例外，並中斷程式執行。</p>
+<h2 id="2-null">2. 傳統的 Null 檢查方式</h2>
+<p>為了避免 NPE 的發生，在 Java 8 之前的歲月裡，開發者最常採用的手段就是「防禦性設計」—— 在操作物件之前，先使用 <code>if (obj != null)</code> 進行檢查。</p>
+<h3 id="_2">防禦性設計與過度檢查的問題</h3>
+<p>雖然上述做法解決了程式直接當機的問題，但當我們的資料實體（Entity）結構呈現深層巢狀時，程式碼會變得極度冗長：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">// 傳統的防禦性檢查</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">getUserCity</span><span class="p">(</span><span class="n">User</span><span class="w"> </span><span class="n">user</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">user</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">        </span><span class="n">Address</span><span class="w"> </span><span class="n">address</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">.</span><span class="na">getAddress</span><span class="p">();</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">address</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">            </span><span class="n">City</span><span class="w"> </span><span class="n">city</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">address</span><span class="p">.</span><span class="na">getCity</span><span class="p">();</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">city</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="n">city</span><span class="p">.</span><span class="na">getName</span><span class="p">();</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">            </span><span class="p">}</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;Unknown&quot;</span><span class="p">;</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">}</span>
+</code></pre></div>
+<p>這種被稱為「箭頭反模式 (Arrow Anti-Pattern)」的寫法，除了嚴重降低了程式碼的可讀性，也無法透過 Method Signature (方法宣告) 明確認知「某個屬性或回傳值是否可能為 null」的語意，導致開發者只能盲目地堆疊 <code>!= null</code> 的預防性檢查。</p>
+<h2 id="3-java-8optional">3. Java 8：<code>Optional</code> 類別</h2>
+<p>為了解決傳統 <code>null</code> 檢查帶來的痛點，Java 8 引入了 <code>java.util.Optional&lt;T&gt;</code> 類別。它的核心精神是：<strong>強迫開發者面對「值可能不存在」的狀況</strong>。</p>
+<h3 id="optional">建立 Optional 物件</h3>
+<ul>
+<li><code>Optional.empty()</code>：建立一個空物件。</li>
+<li><code>Optional.of(value)</code>：建立包含非 <code>null</code> 值的物件（若傳入參數為 <code>null</code> 則會立刻拋出 NPE，符合 Fail-fast 精神）。</li>
+<li><code>Optional.ofNullable(value)</code>：如果傳入參數為 <code>null</code>，回傳空物件；否則回傳包含該值的物件。</li>
+</ul>
+<h3 id="_3">轉換與串接</h3>
+<p>利用 <code>map()</code> 與 <code>flatMap()</code>，我們可以用更宣告式 (Declarative) 的鏈式呼叫來重構前面的 <code>getUserCity</code>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">getUserCity</span><span class="p">(</span><span class="n">User</span><span class="w"> </span><span class="n">user</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">Optional</span><span class="p">.</span><span class="na">ofNullable</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">                   </span><span class="p">.</span><span class="na">map</span><span class="p">(</span><span class="n">User</span><span class="p">::</span><span class="n">getAddress</span><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">                   </span><span class="p">.</span><span class="na">map</span><span class="p">(</span><span class="n">Address</span><span class="p">::</span><span class="n">getCity</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">                   </span><span class="p">.</span><span class="na">map</span><span class="p">(</span><span class="n">City</span><span class="p">::</span><span class="n">getName</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">                   </span><span class="p">.</span><span class="na">orElse</span><span class="p">(</span><span class="s">&quot;Unknown&quot;</span><span class="p">);</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="optional_1">⚠️ 應避免的常見反模式：將 Optional 用作實體變數型別或方法參數</h3>
+<p>雖然 <code>Optional</code> 非常好用，但它<strong>絕對不該被到處濫用</strong>。最常見的兩種反模式（Anti-Pattern）就是：</p>
+<ol>
+<li><strong>將實體的類別欄位 (Field) 宣告為 <code>Optional&lt;T&gt;</code></strong></li>
+<li><strong>在方法的參數 (Argument) 中使用 <code>Optional&lt;T&gt;</code></strong></li>
+</ol>
+<p><strong>為什麼這被視為反模式？</strong></p>
+<ol>
+<li>
+<p><strong>設計初衷的侷限</strong>：<code>Optional</code> 的設計者 Brian Goetz 曾明確表示：<em>「<code>Optional</code> 的主要（甚至是唯一）設計目的是作為 </em><em>回傳型別 (Return Type)</em><em>，用來清楚地向方法的呼叫方表達：這個方法可能無法回傳有意義的結果。」</em></p>
+</li>
+<li>
+<p><strong>沒有實作 <code>Serializable</code> 介面</strong>：這是最致命的一點。<code>Optional</code> 類別底層並沒有實作 <code>java.io.Serializable</code>，這會導致它在任何遇到需要「物件序列化（Serialization）」的場景中直接失敗（拋出 <code>NotSerializableException</code> 錯誤）。</p>
+</li>
+<li><strong>如果在 DTO 中濫用</strong>：將 <code>Optional</code> 用於跨網路傳輸的 API 回應或內部微服務的 RPC 呼叫時，原生 Java 序列化會直接當機；如果是要轉為 JSON，若無特殊模組支援也無法正常解析。</li>
+<li>
+<p><strong>如果在資料實體（Entity）中濫用</strong>：雖然 Entity 原本就不該用來做網路傳輸，但在某些底層情境下仍會遇到強制序列化介入。例如使用 Spring <code>@Cacheable</code> 將查出來的 Entity 存進 Redis 做為快取，或是伺服器（如 Tomcat）將記憶體中閒置使用者的 HTTP Session 狀態暫時存入硬碟檔案時（又稱「狀態鈍化」機制），包含 <code>Optional</code> 的變數都會成為引爆系統當機的未爆彈。</p>
+</li>
+<li>
+<p><strong>增加不必要的記憶體與效能開銷</strong>：<code>Optional</code> 本質上是一個物件的包裹器 (Wrapper Object)。如果將實體變數都宣告為 <code>Optional</code>，會比純粹儲存一個 <code>null</code> reference 多出極大的記憶體標頭消耗與物件創建成本。對於生命週期長的資料實體來說，這是昂貴且不必要的。</p>
+</li>
+<li>
+<p><strong>增加呼叫方的負擔與混淆</strong>：若將方法參數宣告為 <code>Optional&lt;T&gt;</code>，這反而會強制所有呼叫該方法的人，都必須刻意將變數包裝成 <code>Optional.of()</code> 或 <code>Optional.empty()</code> 才能傳入方法，讓程式碼變得非常囉唆。甚至更糟的是，傳入的 <code>Optional</code> 參數本身竟然也可能是 <code>null</code>（即 <code>Optional&lt;String&gt; opt = null;</code>）。這在方法內會產生「<code>null</code> 檢查」再加上「<code>Optional.isPresent()</code>」的兩層防護邏輯，完全失去它原本的初衷。</p>
+</li>
+</ol>
+<p><strong>✅ 正確的最佳實踐：</strong></p>
+<ul>
+<li>在資料實體中，<strong>依然使用傳統的型別與 <code>null</code> 來儲存狀態</strong>。</li>
+<li>但是，<strong>在對外的 Getter 方法中回傳 <code>Optional</code></strong>，藉此將安全防護推向 API 的邊界：</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// 實體內部依然使用一般變數</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kd">private</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">nickname</span><span class="p">;</span><span class="w"> </span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="kd">public</span><span class="w"> </span><span class="n">Optional</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">getNickname</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">Optional</span><span class="p">.</span><span class="na">ofNullable</span><span class="p">(</span><span class="n">nickname</span><span class="p">);</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>對於方法的輸入參數，應保持純粹的型別，並於內部進行 null 檢查，或利用「多載 (Method Overloading)」來規避參數的 nullable 問題。</li>
+</ul>
+<h2 id="4-nullability">4. 利用工具防範：Nullability 註解</h2>
+<p>既然我們把 <code>Optional</code> 限制在回傳值的場景中，那麼內部變數、參數的 null 安全性該如何管理呢？答案是<strong>使用註解 (Annotations)</strong>。</p>
+<p>引入 <code>@NonNull</code> 與 <code>@Nullable</code> 註解標記，能幫助編譯器與現代的 IDE 提早發現潛藏危機。</p>
+<p>常見的註解與檢查工具來源：</p>
+<ul>
+<li><strong>JetBrains (IntelliJ IDEA)</strong>：使用 <code>@org.jetbrains.annotations.Nullable</code> / <code>@NotNull</code>。</li>
+<li><strong>Spring Framework</strong>：使用 <code>@org.springframework.lang.Nullable</code> / <code>@NonNull</code>。</li>
+<li><strong>Lombok</strong>：使用 <code>@lombok.NonNull</code>，Lombok 會在編譯時期自動為你產生對應的 <code>if (obj == null) throw new NullPointerException()</code> 檢查。</li>
+<li><strong>JSR-305 / SpotBugs</strong>：使用 <code>@javax.annotation.Nullable</code>。</li>
+</ul>
+<p>IDE（例如 IntelliJ IDEA）擁有強大的靜態分析工具。當你在方法宣稱某個回傳值為 <code>@Nullable</code>，且呼叫方沒有對其做 null 檢查就直接取用時，編輯器會直接以黃線或紅線發出警告。這種作法既維持了效能，也具備極高的開發防護性。</p>
+<h2 id="5-null">5. 架構與設計模式：避免傳回 Null</h2>
+<p>除了語法糖之外，我們可以在設計層次透過特定的模式來減少系統產生 <code>null</code>。</p>
+<h3 id="null">傳回空集合取代 Null</h3>
+<p>當你需要回傳一個列表 (List)、集合 (Set) 或是映射 (Map) 時，這是一條鐵律：<strong>絕對不要回傳 <code>null</code></strong>。<br />
+回傳 null 迫使呼叫方必須加裝 if-else，否則在 foreach 中就會爆炸。請改為回傳 Java 提供的空集合：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// ❌ 錯誤示範</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kd">public</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">getActiveUsers</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span><span class="w"> </span><span class="c1">// 呼叫方接到 null 之後嘗試跑迴圈就會拋出 NPE</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1">// ✅ 正確示範</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="kd">public</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">getActiveUsers</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">Collections</span><span class="p">.</span><span class="na">emptyList</span><span class="p">();</span><span class="w"> </span><span class="c1">// 呼叫方迴圈能安全地執行 0 次</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="null-object-pattern">Null Object Pattern（空物件模式）</h3>
+<p>為不可為空的介面提供一個預設的「空實作」，代表一種「什麼都不做」或是「預設值」的物件行為。藉由傳遞這個空實作，來消滅呼叫端的 <code>if (obj != null)</code> 檢查。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">interface</span> <span class="nc">Logger</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">message</span><span class="p">);</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">}</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1">// 提供一個實作但不做任何事，即為 Null Object</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">NullLogger</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">Logger</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">message</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">        </span><span class="c1">// Do nothing</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="fail-fast">核心領域的 Fail-Fast 原則</h3>
+<p>如果某個參數是維持該次任務執行的絕對必要條件，我們不該容忍它保持 <code>null</code> 然後在系統深處才爆炸。請在參數剛進入方法的階段，就利用 <code>Objects.requireNonNull</code> 提早引爆致命錯誤：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">processTransaction</span><span class="p">(</span><span class="n">Payment</span><span class="w"> </span><span class="n">payment</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="n">Objects</span><span class="p">.</span><span class="na">requireNonNull</span><span class="p">(</span><span class="n">payment</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Payment 參數不可為 null&quot;</span><span class="p">);</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="c1">// 安全地繼續後續的支付邏輯</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="6-java-nullpointerexception-java-14">6. 現代 Java：更友善的 NullPointerException (Java 14+)</h2>
+<p>隨著 Java 版本演進，解決 NPE 的開發體驗也大幅提升。Java 14 推出了劃時代的功能：<strong>JEP 358 (Helpful NullPointerExceptions)</strong>。</p>
+<p>過去我們在查閱 Logs 時，經常看到這樣的錯誤：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>java.lang.NullPointerException
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    at com.example.Main.main(Main.java:10)
+</code></pre></div>
+<p>假設程式碼的第 10 行是一串鏈式呼叫：<code>a.b.c.i = 99;</code><br />
+光看錯誤日誌，你根本無法分辨到底是 <code>a</code>、還是 <code>b</code>，或者是 <code>c</code> 為 <code>null</code>，只能設下斷點慢慢重現。</p>
+<p>但在 Java 14 以及後續版本中，JVM 的錯誤訊息變得極為透徹與精準：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Exception in thread &quot;main&quot; java.lang.NullPointerException: 
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>Cannot read field &quot;c&quot; because &quot;a.b&quot; is null
+</code></pre></div>
+<p>JVM 這次會清楚地告訴你：「因為 <code>a.b</code> 的結果是 <code>null</code>，所以我無法讀取 <code>c</code> 屬性。」<br />
+這使得排查 NPE 從繁瑣的苦差事，變成只需要看一眼 Log 就能瞬間秒殺的任務。</p>
+<h2 id="7">7. 結論與最佳實踐準則</h2>
+<p>在 Java 宇宙中與 <code>null</code> 和平共存，是一門優雅防禦的藝術。為了寫出高健壯性、易讀的程式碼，可以歸納出以下實踐準則：</p>
+<ol>
+<li><strong>防止 <code>null</code> 擴散進團隊內部</strong>：在 API 的邊界攔截與驗證，盡量不將 null 當作參數四處傳遞。</li>
+<li><strong>回傳空集合，不要回傳 null</strong>：減輕呼叫方一堆不必要的 null 檢查負擔。</li>
+<li><strong>正確善用 <code>Optional</code></strong>：嚴謹地將其作為<strong>回傳型別</strong>來表示資料的潛在缺失。千萬不要把它當成變數欄位、方法參數，或是強塞進集合裡。</li>
+<li><strong>借助編譯器與工具的力量</strong>：廣泛利用 <code>@Nullable</code> 及 <code>@NonNull</code> 為 API 打上語意契約，把抓漏的責任轉移給 IDE。</li>
+<li><strong>貫徹 Fail-fast 哲學</strong>：不要害怕丟出 Exception。遇到非法或不可為空的狀態改變，在一開始就立刻攔除問題。</li>
+</ol>
+<p>只要遵循這些守則，我們就能從根源控制風險，並大幅降低在維護期掉進 NPE 陷阱的機會！</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到頂部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u62f7\u8c9d", "clipboard.copy": "\u62f7\u8c9d", "search.result.more.one": "\u6b64\u9801\u5c1a\u6709 1 \u500b\u7b26\u5408\u7684\u9805\u76ee", "search.result.more.other": "\u6b64\u9801\u5c1a\u6709 # \u500b\u7b26\u5408\u7684\u9805\u76ee", "search.result.none": "\u6c92\u6709\u627e\u5230\u7b26\u5408\u689d\u4ef6\u7684\u7d50\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u689d\u4ef6\u7684\u7d50\u679c", "search.result.other": "\u627e\u5230 # \u500b\u7b26\u5408\u689d\u4ef6\u7684\u7d50\u679c", "search.result.placeholder": "\u9375\u5165\u4ee5\u958b\u59cb\u6aa2\u7d22", "search.result.term.missing": "\u7f3a\u5931", "select.version": "\u9078\u64c7\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
