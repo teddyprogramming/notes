@@ -46,4 +46,5 @@ nav:
     - Null 處理的最佳實踐: java-null-handling.md
   - 📐 DDD 筆記:
     - 從時序圖解析 Domain Model 的互動邊界與職責: ddd-series/02-architecture/01-domain-interaction-boundaries.md
-    - 關聯 (Associations) 與模型導航: ddd-series/03-tactical-design/01-associations.md
+    - 關聯 (Associations) 與模型導航: ddd-series/03-building-blocks/01-associations.md
+    - Entity, Value Object, Domain Service, Module: ddd-series/03-building-blocks/02-entities-value-objects-services.md
