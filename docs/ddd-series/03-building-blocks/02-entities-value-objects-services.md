@@ -130,7 +130,7 @@ public final class Money {
 
 
 !!! warning "警告：貧血模型"
-    **貧血模型並非真正的 Domain Model**。它會導致系統邏輯散亂、復用性低，且難以維護領域的不變量（Invariants）。一個健康的 DDD 實作應致力於將邏輯放回 Entity 與 Value Object 中（即 Rich Domain Model）。
+    **貧血模型並非真正的 Domain Model**。它會導致系統邏輯散亂、復用性低，且難以維護領域中那些始終需滿足的業務規則 (Invariants)。一個健康的 DDD 實作應致力於將邏輯放回 Entity 與 Value Object 中（即 Rich Domain Model）。
 
 ---
 
